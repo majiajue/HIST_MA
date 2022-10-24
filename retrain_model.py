@@ -99,7 +99,7 @@ def retrain_model(model_path = "trained_model", fit_end_time="2022-08-01"):
             print("Complete saving model")
 
 def retrain_model_using_all_data(model_path = "trained_model"):
-    provider_uri = "~/.qlib/qlib_data/cn_data"  # target_dir
+    provider_uri = "E://qlib//qlib_data//cn_data"  # target_dir
     if not exists_qlib_data(provider_uri):
         print(f"Qlib data is not found in {provider_uri}")
         return
