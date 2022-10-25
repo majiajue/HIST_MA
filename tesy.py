@@ -82,33 +82,76 @@ import tushare as ts
 # 初始化pro接口
 pro = ts.pro_api('7bee558347c0922dfd601254294a5726654493fdf5545d5c28ee2153')
 
-# 拉取数据
-df = pro.fina_mainbz(**{
-    "ts_code": "600001.SH",
-    "period": "20090630",
-    "type": "P",
-    "end_date": "",
-    "is_publish": "",
-    "limit": "",
-    "offset": ""
-}, fields=[
-    "ts_code",
-    "bz_item",
-    "end_date"
+# stock_index = np.load('./data/csi300_stock_index.npy',allow_pickle=True).item()
+# result_df = pd.DataFrame()
+# for i in stock_index:
+# # 拉取数据
+#     time.sleep(2)
+   
+#     df = pro.fina_mainbz(**{
+#         "ts_code":i[2:8]+"."+i[0:2],
+#         "period": "",
+#         "type": "P",
+#         "end_date": "",
+#         "is_publish": "",
+#         "limit": "",
+#         "offset": ""
+#     }, fields=[
+#         "ts_code",
+#         "bz_item",
+#         "end_date"
 
-])
-df2 = df.set_index(["end_date","ts_code"])["bz_item"]
-df2  =  df2.drop_duplicates()
+#     ])
+#     result_df=result_df.append(df)
+#     print(result_df)
+    
+
+
+# result_df.to_csv('stock_index2concept.csv',encoding='utf-8',index=False)
+# df2 = df.set_index(["end_date","ts_code"])["bz_item"]
+# df2  =  df2.drop_duplicates()
 # new_df = df2.rename_axis(columns=None)
 # new_df = new_df.reset_index()
-print(df2)
-
+# print(df2)
+stock2concept = pd.read_csv('stock_index2concept.csv',encoding='utf-8')
+print(len(stock2concept))
+df=stock2concept.drop_duplicates(subset=['end_date','ts_code','bz_item'], keep='first')
+print(df.head())
+counts = stock2concept.value_counts(subset=['ts_code','end_date','bz_item'], sort=True).loc[lambda x: x > 1]
+counts.to_csv('count.csv',encoding='utf-8')
+# del stock2concept['index']
+# df=stock2concept.drop_duplicates()
+# df2 = df.groupby(by=["end_date","ts_code"])
+# print(df.head())
+# dt = df.index.get_level_values(0).unique()
+# df3 =df.loc[dt[0]]
+# stock_code = df.index.get_level_values(1).unique().tolist()
+# ddd= df3.unstack().reindex(stock_code).fillna(0)
+# print(ddd)
+# counts = df.value_counts(subset=['ts_code','end_date','bz_item'], sort=False).loc[lambda x: x > 1]
+# print(counts)
+# df2 = df.set_index(["end_date","ts_code"])
+# print(df2)
+# # stock2concept = stock2concept.set_index(["end_date","ts_code"])
+# dt = df2.index.get_level_values(0).unique()
+# # assert len(dt == 1), '提取的stock2concept_matrix涉及多个交易日！'
+# stock_code = df2.index.get_level_values(1).unique().tolist()
+# stock2concept_matrix_dt = df2.loc[dt[0]].drop_duplicates().unstack().reindex(stock_code)
+# print(stock2concept_matrix_dt)
+# print(stock2concept_matrix_dt)
+# print(df2)
+# df2 = pd.DataFrame(stock2concept,columns=["ts_code","bz_item"])
+# df2 = df2.drop_duplicates()
+# df2 = df2.set_index(["ts_code"])["bz_item"].unstack()
+# print(df2)
+# assert len(df2.index == 1)
+# print(df2)
 # dd = df2.index.get_level_values(0).unique()
 # assert len(dd == 1), '提取的stock2concept_matrix涉及多个交易日！'
 # stock_code = df2.index.get_level_values(1).unique().tolist()
 # print(dd[0])
-stock2concept_matrix = np.load('./data/csi300_stock2concept.npy') 
-print(len(stock2concept_matrix))
+# stock2concept_matrix = np.load('./data/csi300_stock2concept.npy') 
+# print(len(stock2concept_matrix))
 # def get_stock2concept_matrix_dt(stock2concept_matrix, index):
 #     '''
 #     按索引提取预定义概念
