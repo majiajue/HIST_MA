@@ -114,19 +114,37 @@ pro = ts.pro_api('7bee558347c0922dfd601254294a5726654493fdf5545d5c28ee2153')
 # new_df = new_df.reset_index()
 # print(df2)
 stock2concept = pd.read_csv('stock_index2concept.csv',encoding='utf-8')
-print(len(stock2concept))
-df=stock2concept.drop_duplicates(subset=['end_date','ts_code','bz_item'], keep='first')
-print(df.head())
-counts = stock2concept.value_counts(subset=['ts_code','end_date','bz_item'], sort=True).loc[lambda x: x > 1]
-counts.to_csv('count.csv',encoding='utf-8')
+df3 = stock2concept.set_index(["end_date","ts_code"])
+dt = df3.index.get_level_values(0).unique()
+df4=df3.loc[dt[0]].reset_index()
+print(df4)
+N, K = df4.shape
+relation = np.zeros((N, N, K-1))
+print(relation)
+# for i in range(N):
+#     for j in range(N):
+#         for k in range(K-1):
+#             if df4.iloc[i, k+1]==df4.iloc[j, k+1]:
+#                 relation[i, j, k] = 1
+# print(relation)
+# print(len(stock2concept))
+# df=stock2concept.drop_duplicates(subset=['end_date','ts_code','bz_item'], keep='first')
+# print(df.head())
+# df2 = stock2concept.value_counts(subset=['ts_code','end_date','bz_item'], sort=False).loc[lambda x: x > 1].to_frame().reset_index()
+# df2 = df2.drop(columns=0)
+# print(df2)
+# df3 = df2.set_index(["ts_code","end_date"])
+# df3 = df3[~df3.index.duplicated()]
+# counts.to_csv('count.csv',encoding='utf-8')
 # del stock2concept['index']
 # df=stock2concept.drop_duplicates()
 # df2 = df.groupby(by=["end_date","ts_code"])
 # print(df.head())
-# dt = df.index.get_level_values(0).unique()
+# dt = df3.index.get_level_values(0).unique()
 # df3 =df.loc[dt[0]]
-# stock_code = df.index.get_level_values(1).unique().tolist()
-# ddd= df3.unstack().reindex(stock_code).fillna(0)
+# stock_code = df3.index.get_level_values(1).unique().tolist()
+# stock2concept_matrix_dt = df3.loc[dt[0]].reindex(stock_code).fillna(0)
+# print(stock2concept_matrix_dt)
 # print(ddd)
 # counts = df.value_counts(subset=['ts_code','end_date','bz_item'], sort=False).loc[lambda x: x > 1]
 # print(counts)
