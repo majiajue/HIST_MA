@@ -4,6 +4,7 @@ import tushare as ts
 import datetime as dt
 import time
 import numpy as np
+np.set_printoptions(threshold=np.inf)  
 # def func(x):
 #     a=x
 #     b = str(x)
@@ -114,13 +115,19 @@ pro = ts.pro_api('7bee558347c0922dfd601254294a5726654493fdf5545d5c28ee2153')
 # new_df = new_df.reset_index()
 # print(df2)
 stock2concept = pd.read_csv('stock_index2concept.csv',encoding='utf-8')
-df3 = stock2concept.set_index(["end_date","ts_code"])
+stock2concept['concept'] = 1
+df3 = stock2concept.set_index(["end_date","ts_code","bz_item"])
+df3 = df3[~df3.index.duplicated()]
 dt = df3.index.get_level_values(0).unique()
-df4=df3.loc[dt[0]].reset_index()
-print(df4)
-N, K = df4.shape
-relation = np.zeros((N, N, K-1))
-print(relation)
+stock_code = df3.index.get_level_values(1).unique().tolist()
+stock2concept_matrix_dt = df3.loc[dt[0]].unstack().reindex(stock_code).fillna(0)
+print(stock2concept_matrix_dt)
+# dt = df3.index.get_level_values(0).unique()
+# df4=df3.loc[dt[0]].reset_index()
+# print(df4)
+# N, K = df4.shape
+# relation = np.zeros((N, N, K-1))
+# print(relation)
 # for i in range(N):
 #     for j in range(N):
 #         for k in range(K-1):
@@ -169,6 +176,7 @@ print(relation)
 # stock_code = df2.index.get_level_values(1).unique().tolist()
 # print(dd[0])
 # stock2concept_matrix = np.load('./data/csi300_stock2concept.npy') 
+# print(len(stock2concept_matrix[0]))
 # print(len(stock2concept_matrix))
 # def get_stock2concept_matrix_dt(stock2concept_matrix, index):
 #     '''
