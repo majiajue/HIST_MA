@@ -36,10 +36,10 @@ def get_stock2concept_matrix_dt(stock2concept_matrix, index):
     return stock2concept_matrix_dt
 def dump_predict_using_model(model_path = "trained_model", output_directory = "./"):
   # Init data
-    # provider_uri = "E://qlib//qlib_data//cn_data"
-    # if not exists_qlib_data(provider_uri):
-    #     raise Exception(f"Qlib data is not found in {provider_uri}")
-    # qlib.init(provider_uri=provider_uri, region=REG_CN)
+    provider_uri = "E://qlib//qlib_data//cn_data"
+    if not exists_qlib_data(provider_uri):
+        raise Exception(f"Qlib data is not found in {provider_uri}")
+    qlib.init(provider_uri=provider_uri, region=REG_CN)
 
   # Prepare dataset 
 
@@ -48,22 +48,21 @@ def dump_predict_using_model(model_path = "trained_model", output_directory = ".
     segments =  {"test": ("2022-07-01", "2055-07-22")}
     with open('./data/csi300_market_value_07to22.pkl', "rb") as fh:
         df_market_value = pickle.load(fh)
-    print("####################")
-    print(df_market_value)
-    print("####################")
     df_market_value = df_market_value/1000000000
+    df_market_value=df_market_value.reset_index()
+    df_market_value['datetime'] = pd.to_datetime(df_market_value['datetime'] , format='%Y-%m-%d')
+    df_market_value.set_index(['datetime','instrument'], inplace=True)
     slc = slice(pd.Timestamp("2022-07-01"), pd.Timestamp("2055-07-22"))
-    print(df_market_value[slc])
-    # stock_index = np.load('./data/csi300_stock_index.npy', allow_pickle=True).item()
-    # dataset = DatasetH(hanlder,segments)
-    # df_test = dataset.prepare( ["test"], col_set=["feature", "label"], data_key=DataHandlerLP.DK_L,)
+    stock_index = np.load('./data/csi300_stock_index.npy', allow_pickle=True).item()
+    dataset = DatasetH(hanlder,segments)
+    df_test = dataset.prepare( ["test"], col_set=["feature", "label"], data_key=DataHandlerLP.DK_L,)
     # slc = slice(pd.Timestamp("2022-07-01"), pd.Timestamp("2055-07-22"))
-    # df_test['market_value'] = df_market_value[slc]
-    # df_test['market_value'] = df_test['market_value'].fillna(df_test['market_value'].mean())
-    # df_test['stock_index'] = 733
-    # df_test['stock_index'] = df_test.index.get_level_values('instrument').map(stock_index).fillna(733).astype(int)
-    # start_index += len(df_test.groupby(level=0).size())
-    # print(df_test)
+    df_test['market_value'] = df_market_value[slc]
+    df_test['market_value'] = df_test['market_value'].fillna(df_test['market_value'].mean())
+    df_test['stock_index'] = 733
+    df_test['stock_index'] = df_test.index.get_level_values('instrument').map(stock_index).fillna(733).astype(int)
+    start_index += len(df_test.groupby(level=0).size())
+    print(df_test)
     # test_loader = DataLoader(df_test["feature"], df_test["label"], df_test['market_value'], df_test['stock_index'], pin_memory=True, start_index=start_index, device = device)
     # stock2concept_matrix = np.load('./data/csi300_stock2concept.npy')
     # stock2concept_matrix = torch.Tensor(stock2concept_matrix).to(device)

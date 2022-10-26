@@ -3,20 +3,23 @@ import pickle
 import tushare as ts
 import datetime as dt
 import time
+import datetime
 import numpy as np
+# pd.set_option('display.max_rows', None)
+# pd.set_option('max_colwidth',100)
 np.set_printoptions(threshold=np.inf)  
-# def func(x):
-#     a=x
-#     b = str(x)
-#     a=a[7:9]+b[0:6]
-#     return a
-# pro = ts.pro_api('7bee558347c0922dfd601254294a5726654493fdf5545d5c28ee2153')
-# # 拉取数据
+def func(x):
+    a=x
+    b = str(x)
+    a=a[7:9]+b[0:6]
+    return a
+pro = ts.pro_api('7bee558347c0922dfd601254294a5726654493fdf5545d5c28ee2153')
+# 拉取数据
 # df = pro.trade_cal(**{
 #     "exchange": "SSE",
 #     "cal_date": "",
-#     "start_date": 20210101,
-#     "end_date": 20221021,
+#     "start_date": 20221021,
+#     "end_date": 20221026,
 #     "is_open": "1",
 #     "limit": "",
 #     "offset": ""
@@ -46,7 +49,7 @@ np.set_printoptions(threshold=np.inf)
 #     value_df['ts_code']=value_df['ts_code'].apply(func)
 #     value_df = value_df.rename(columns={'trade_date':'datetime','ts_code':'instrument','total_mv':'$market_value'})
 #     value_df = value_df[['datetime','instrument','$market_value']]
-#     final_df  = final_df .append(value_df,ignore_index=True)
+#     final_df  = final_df.append(value_df,ignore_index=True)
 # final_df.to_csv('value_df.csv',mode='a',encoding='utf-8',index=False)
 
 
@@ -69,19 +72,27 @@ np.set_printoptions(threshold=np.inf)
 # print(df)
 # with open('./data/csi300_market_value_07to20.pkl', "rb") as fh:
 #     df = pickle.load(fh)
-# data=pd.read_pickle('./data/csi300_market_value_07to20.pkl')
 
-# data.to_csv('df_market_value.csv',encoding='utf-8')
 # data = pd.read_csv('df_market_value.csv',encoding='utf-8')
 # # df.to_csv('df_market_value.csv',mode='a',encoding='utf-8',index=False)
 # df = pd.read_csv('value_df.csv',encoding='utf-8')
 # new_df = pd.concat([data,df],ignore_index=True)
+# new_df['datetime'] = pd.to_datetime(new_df['datetime'] , format='%Y-%m-%d')
 # df2 = new_df.set_index(["datetime","instrument"])
 # df2.to_pickle('./data/csi300_market_value_07to22.pkl')
-# 导入tushare
-import tushare as ts
-# 初始化pro接口
-pro = ts.pro_api('7bee558347c0922dfd601254294a5726654493fdf5545d5c28ee2153')
+
+with open('./data/csi300_market_value_07to22.pkl', "rb") as fh:
+    df_market_value = pickle.load(fh)
+df_market_value = df_market_value/1000000000
+
+df_market_value=df_market_value.reset_index()
+df_market_value['datetime'] = pd.to_datetime(df_market_value['datetime'],format='%Y-%m-%d')
+df_market_value.set_index(['datetime','instrument'], inplace=True)
+# df_market_value = df_market_value[~df_market_value.index.duplicated()]
+# print(df_market_value.index)
+slc = slice(pd.Timestamp("2022-07-01"), pd.Timestamp("2055-07-22"))
+print(df_market_value[slc])
+# 
 
 # stock_index = np.load('./data/csi300_stock_index.npy',allow_pickle=True).item()
 # result_df = pd.DataFrame()
@@ -114,14 +125,14 @@ pro = ts.pro_api('7bee558347c0922dfd601254294a5726654493fdf5545d5c28ee2153')
 # new_df = df2.rename_axis(columns=None)
 # new_df = new_df.reset_index()
 # print(df2)
-stock2concept = pd.read_csv('stock_index2concept.csv',encoding='utf-8')
-stock2concept['concept'] = 1
-df3 = stock2concept.set_index(["end_date","ts_code","bz_item"])
-df3 = df3[~df3.index.duplicated()]
-dt = df3.index.get_level_values(0).unique()
-stock_code = df3.index.get_level_values(1).unique().tolist()
-stock2concept_matrix_dt = df3.loc[dt[0]].unstack().reindex(stock_code).fillna(0)
-print(stock2concept_matrix_dt)
+# stock2concept = pd.read_csv('stock_index2concept.csv',encoding='utf-8')
+# stock2concept['concept'] = 1
+# df3 = stock2concept.set_index(["end_date","ts_code","bz_item"])
+# df3 = df3[~df3.index.duplicated()]
+# dt = df3.index.get_level_values(0).unique()
+# stock_code = df3.index.get_level_values(1).unique().tolist()
+# stock2concept_matrix_dt = df3.loc[dt[0]].unstack().reindex(stock_code).fillna(0)
+# print(stock2concept_matrix_dt)
 # dt = df3.index.get_level_values(0).unique()
 # df4=df3.loc[dt[0]].reset_index()
 # print(df4)
