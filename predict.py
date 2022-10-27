@@ -47,27 +47,29 @@ def dump_predict_using_model(model_path = "trained_model", output_directory = ".
     hanlder = {'class': 'Alpha360', 'module_path': 'qlib.contrib.data.handler', 'kwargs': {'start_time':  "2006-01-01", 'end_time': "2055-07-22", 'fit_start_time':"2022-07-01", 'fit_end_time':"2022-07-02", 'instruments': "csi300", 'infer_processors': [{'class': 'RobustZScoreNorm', 'kwargs': {'fields_group': 'feature', 'clip_outlier': True}}, {'class': 'Fillna', 'kwargs': {'fields_group': 'feature'}}], 'learn_processors': [{'class': 'DropnaLabel'}, {'class': 'CSRankNorm', 'kwargs': {'fields_group': 'label'}}], 'label': ['Ref($close, -1) / $close - 1']}}
 
     segments =  {"test": ("2022-07-01", "2055-07-22")}
-    with open('./data/csi300_market_value_07to20.pkl', "rb") as fh:
+    with open('./data/csi300_market_value_07to22.pkl', "rb") as fh:
         df_market_value = pickle.load(fh)
-        
-    print("####################")
-    print(df_market_value)
-    print("####################")
     df_market_value = df_market_value/1000000000
-    slc = slice(pd.Timestamp("2020-07-01"), pd.Timestamp("2020-12-31"))
     stock_index = np.load('./data/csi300_stock_index.npy', allow_pickle=True).item()
     start_index = 0
-    # df = df_market_value.reset_index()
-    s_date = datetime.datetime.strptime("2022-07-01", '%Y-%m-%d').date()
-    e_date = datetime.datetime.strptime("2055-07-22", '%Y-%m-%d').date()
-    # # df = df_market_value.set_index("datetime")
-    # df = df[(df['datetime'] >= "2022-07-01") & (df['datetime'] <= "2055-07-22")]
-    # df = df.set_index(["datetime","instrument"])
-    stock_index = np.load('./data/csi300_stock_index.npy', allow_pickle=True).item()
+    df_market_value=df_market_value.reset_index()
+    df_market_value['datetime'] = pd.to_datetime(df_market_value['datetime'],format='%Y-%m-%d')
+    df_market_value.set_index(['datetime','instrument'], inplace=True)
+    slc = slice(pd.Timestamp("2022-07-01"), pd.Timestamp("2055-07-22"))
+    dd = df_market_value[slc]
+    df_market_value=df_market_value[~df_market_value.index.duplicated()]
+    print(type(dd))
+    print(dd)
     dataset = DatasetH(hanlder,segments)
-    df_test = dataset.prepare( ["test"], col_set=["feature", "label"], data_key=DataHandlerLP.DK_L,)
-
-    df_test['market_value'] = df_market_value[slc]
+    df_test = dataset.prepare("test", data_key=DataHandlerLP.DK_L,)
+    df_test = df_test[~df_market_value.index.duplicated()]
+    print(df_test.head())
+    # data=pd.DataFrame(np.array(df_test))
+    print(type(df_test))
+    # df_test2 = pd.merge(df_test, dd, left_index=True, right_index=True)
+    # print(df_test2)
+    # print(df_test2)
+    df_test['market_value'] = dd
     # df_test['market_value'] = df_test['market_value'].fillna(df_test['market_value'].mean())
     # df_test['stock_index'] = 733
     # df_test['stock_index'] = df_test.index.get_level_values('instrument').map(stock_index).fillna(733).astype(int)
