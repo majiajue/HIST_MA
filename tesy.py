@@ -114,14 +114,15 @@ pro = ts.pro_api('7bee558347c0922dfd601254294a5726654493fdf5545d5c28ee2153')
 # new_df = df2.rename_axis(columns=None)
 # new_df = new_df.reset_index()
 # print(df2)
-stock2concept = pd.read_csv('stock_index2concept.csv',encoding='utf-8')
-stock2concept['concept'] = 1
-df3 = stock2concept.set_index(["end_date","ts_code","bz_item"])
-df3 = df3[~df3.index.duplicated()]
-dt = df3.index.get_level_values(0).unique()
-stock_code = df3.index.get_level_values(1).unique().tolist()
-stock2concept_matrix_dt = df3.loc[dt[0]].unstack().reindex(stock_code).fillna(0)
-print(stock2concept_matrix_dt)
+def getStock2concept():
+    stock2concept = pd.read_csv('stock_index2concept.csv',encoding='utf-8')
+    stock2concept['concept'] = 1
+    df3 = stock2concept.set_index(["end_date","ts_code","bz_item"])
+    df3 = df3[~df3.index.duplicated()]
+    dt = df3.index.get_level_values(0).unique()
+    stock_code = df3.index.get_level_values(1).unique().tolist()
+    stock2concept_matrix_dt = df3.loc[dt[0]].unstack().reindex(stock_code).fillna(0)
+    return stock2concept
 # dt = df3.index.get_level_values(0).unique()
 # df4=df3.loc[dt[0]].reset_index()
 # print(df4)
