@@ -61,20 +61,15 @@ def dump_predict_using_model(model_path = "trained_model", output_directory = ".
     print(type(dd))
     print(dd)
     dataset = DatasetH(hanlder,segments)
-    df_test = dataset.prepare("test", data_key=DataHandlerLP.DK_L,)
-    df_test = df_test[~df_market_value.index.duplicated()]
-    print(df_test.head())
-    # data=pd.DataFrame(np.array(df_test))
-    print(type(df_test))
-    # df_test2 = pd.merge(df_test, dd, left_index=True, right_index=True)
-    # print(df_test2)
-    # print(df_test2)
-    df_test['market_value'] = dd
-    # df_test['market_value'] = df_test['market_value'].fillna(df_test['market_value'].mean())
-    # df_test['stock_index'] = 733
-    # df_test['stock_index'] = df_test.index.get_level_values('instrument').map(stock_index).fillna(733).astype(int)
-    # start_index += len(df_test.groupby(level=0).size())
-    # print(df_test)
+    df_test = dataset.prepare("test", col_set=["feature", "label"],data_key=DataHandlerLP.DK_L,)
+    # df_test = df_test.reset_index()
+    df_test = df_test[~df_test.index.duplicated()]
+    df_test2 = pd.merge(df_test, dd, left_index=True, right_index=True)
+    df_test2['market_value'] = df_test2['market_value'].fillna(df_test2['market_value'].mean())
+    df_test2['stock_index'] = 733
+    df_test2['stock_index'] = df_test2.index.get_level_values('instrument').map(stock_index).fillna(733).astype(int)
+    start_index += len(df_test2.groupby(level=0).size())
+    print(df_test2)
     # test_loader = DataLoader(df_test["feature"], df_test["label"], df_test['market_value'], df_test['stock_index'], pin_memory=True, start_index=start_index, device = device)
     # stock2concept_matrix = np.load('./data/csi300_stock2concept.npy')
     # stock2concept_matrix = torch.Tensor(stock2concept_matrix).to(device)
