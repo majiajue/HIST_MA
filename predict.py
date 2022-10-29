@@ -56,37 +56,36 @@ def dump_predict_using_model(model_path = "trained_model", output_directory = ".
     df_market_value['datetime'] = pd.to_datetime(df_market_value['datetime'],format='%Y-%m-%d')
     df_market_value.set_index(['datetime','instrument'], inplace=True)
     slc = slice(pd.Timestamp("2022-07-01"), pd.Timestamp("2055-07-22"))
-    dd = df_market_value[slc]
-    df_market_value=df_market_value[~df_market_value.index.duplicated()]
-    print(type(dd))
-    print(dd)
+    dd=df_market_value[slc]
+    dd=dd[~dd.index.duplicated()]
     dataset = DatasetH(hanlder,segments)
-    df_test = dataset.prepare("test", col_set=["feature", "label"],data_key=DataHandlerLP.DK_L,)
+    df_test = dataset.prepare(["test"], col_set=["feature", "label"],data_key=DataHandlerLP.DK_L,)[0]
     # df_test = df_test.reset_index()
     df_test = df_test[~df_test.index.duplicated()]
-    df_test2 = pd.merge(df_test, dd, left_index=True, right_index=True)
-    df_test2['market_value'] = df_test2['market_value'].fillna(df_test2['market_value'].mean())
-    df_test2['stock_index'] = 733
-    df_test2['stock_index'] = df_test2.index.get_level_values('instrument').map(stock_index).fillna(733).astype(int)
-    start_index += len(df_test2.groupby(level=0).size())
-    print(df_test2)
-    # test_loader = DataLoader(df_test["feature"], df_test["label"], df_test['market_value'], df_test['stock_index'], pin_memory=True, start_index=start_index, device = device)
-    # stock2concept_matrix = np.load('./data/csi300_stock2concept.npy')
-    # stock2concept_matrix = torch.Tensor(stock2concept_matrix).to(device)
-    # preds = pd.DataFrame()
-    # with Path(model_path).open("rb") as f:
-    #     model = pickle.Unpickler(f).load()
-    # model.eval()
-    # for i, slc in tqdm(test_loader.iter_daily(), desc=stock2concept_matrix, total=test_loader.daily_length):
+    df_test['market_value'] = dd
+    # df_test = pd.merge(df_test, dd, left_index=True,right_index=None)
+    df_test['market_value'] = df_test['market_value'].fillna(df_test['market_value'].mean())
+    df_test['stock_index'] = 733
+    df_test['stock_index'] = df_test.index.get_level_values('instrument').map(stock_index).fillna(733).astype(int)
+    start_index += len(df_test.groupby(level=0).size())
+    test_loader = DataLoader(df_test["feature"], df_test["label"], df_test['market_value'], df_test['stock_index'], pin_memory=True, start_index=start_index, device = device)
+    stock2concept_matrix = np.load('./data/csi300_stock2concept.npy')
+    stock2concept_matrix = torch.Tensor(stock2concept_matrix).to(device)
+    print(test_loader)
+    preds = pd.DataFrame()
+    with Path(model_path).open("rb") as f:
+        model = pickle.Unpickler(f).load()
+    model.eval()
+    for i, slc in tqdm(test_loader.iter_daily(), desc=stock2concept_matrix, total=test_loader.daily_length):
 
-    #     feature, label, market_value, stock_index, index = test_loader.get(slc)
+        feature, label, market_value, stock_index, index = test_loader.get(slc)
 
-    #     pred = model(feature, stock2concept_matrix[stock_index], market_value)
-    #     print(pred)
-    #     preds.append(pd.DataFrame({ 'score': pred.cpu().numpy(), 'label': label.cpu().numpy(), }, index=index))
+        pred = model(feature, stock2concept_matrix[stock_index], market_value)
+        print(pred)
+        preds.append(pd.DataFrame({ 'score': pred.cpu().numpy(), 'label': label.cpu().numpy(), }, index=index))
     
-    # pred_df = pd.concat(preds, axis=0)
-    # print(preds)
+    pred_df = pd.concat(preds, axis=0)
+    print(pred_df)
     # last_item_index = pred_df.iloc[-1:].index[0]
     # last_item_datetime = last_item_index[0]
     # latest_score_list = pred_df.at[last_item_datetime].sort_values(ascending=False)
